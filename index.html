@@ -348,16 +348,32 @@
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-surface py-12 px-6 bg-base">
+    <footer class="border-t border-surface py-12 px-6 bg-base relative z-20">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-surface border border-borderline/20 flex items-center justify-center">
-                    <div class="w-2 h-2 rounded-sm bg-textdim"></div>
+            
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <!-- Branding -->
+                <div class="flex items-center gap-2">
+                    <img src="hricon-macOS-Default-1024x1024@1x.png" alt="HonestRecovery Logo" class="w-6 h-6 object-contain rounded-md grayscale opacity-80">
+                    <span class="text-sm font-bold text-textdim">ReviveMedia & Recovery</span>
                 </div>
-                <span class="text-sm font-bold text-textdim">ReviveMedia & Recovery</span>
+                
+                <!-- Legal and Manual Links -->
+                <div class="flex items-center gap-4 text-sm font-semibold text-textdim/70">
+                    <a href="manual.html" class="hover:text-primary transition-colors">User Manual</a>
+                    <span class="text-surface/50">|</span>
+                    <a href="terms.html" class="hover:text-primary transition-colors">Terms of Service</a>
+                    <span class="text-surface/50">|</span>
+                    <a href="privacy.html" class="hover:text-primary transition-colors">Privacy Policy</a>
+                    <span class="text-surface/50">|</span>
+                    <a href="eula.html" class="hover:text-primary transition-colors">EULA</a>
+                </div>
             </div>
-            <div class="text-sm text-textdim/50">
-                Designed for Apple Silicon M2+. macOS 13 or later required.
+
+            <!-- Copyright and Spec details -->
+            <div class="text-sm text-textdim/50 text-center md:text-right">
+                Designed for Apple Silicon M2+. macOS 13 or later required.<br>
+                &copy; 2026 ReviveMedia & Recovery. All rights reserved.
             </div>
         </div>
     </footer>

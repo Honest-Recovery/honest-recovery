@@ -1,359 +1,416 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honest Recovery | Pro Digital Forensics for macOS</title>
-    <meta name="description" content="Professional-grade data recovery and digital forensics suite built exclusively for Apple Silicon macOS.">
-    
-    <!-- Google Fonts: Syne -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Phosphor Icons for technical, clean iconography -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <!-- Tailwind CSS -->
+    <title>HonestRecovery - Pro Digital Forensics for macOS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script>
-        tailwind.config = {
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
             theme: {
                 extend: {
+                    colors: {
+                        base: '#0A0A0A',
+                        surface: '#171717',
+                        primary: '#FFFFFF',
+                        textdim: '#FAFAFA',
+                        borderline: '#E5E5E5'
+                    },
                     fontFamily: {
                         syne: ['Syne', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
-                    },
-                    colors: {
-                        background: '#0A0A0A',
-                        surface: '#171717',
-                        textMain: '#FAFAFA',
-                        accent: '#FFFFFF',
-                        borderLight: '#E5E5E5',
-                        borderSubtle: 'rgba(229, 229, 229, 0.1)',
-                    },
-                    borderRadius: {
-                        'pill-primary': '22px',
-                        'pill-secondary': '32px',
-                    },
-                    spacing: {
-                        // 8px base system
-                        '128': '32rem',
                     }
                 }
             }
         }
     </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #0A0A0A;
-            color: #FAFAFA;
-            font-family: 'Syne', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+        body { 
+            font-family: 'Syne', sans-serif; 
+            background-color: #0A0A0A; 
+            color: #FAFAFA; 
+            overflow-x: hidden; 
+        }
+        
+        .glow-button { transition: all 0.3s ease; }
+        .glow-button:hover { box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        
+        /* Clean & Restored Screenshot Styles - No crazy filters, just a clean presentation */
+        .software-preview {
+            opacity: 0.9;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .software-preview:hover {
+            opacity: 1;
+            transform: translateY(-8px);
+            z-index: 50;
         }
 
-        /* Technical grid background pattern for visual interest in hero */
-        .bg-grid {
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            background-position: center center;
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+            pointer-events: none;
         }
-
-        /* Subtle glowing text effect for technical emphasis */
-        .text-glow {
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        }
-
-        /* Terminal typing animation cursor */
-        .cursor-blink {
-            animation: blink 1s step-end infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+        .grid-bg {
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 </head>
-<body class="bg-background text-textMain selection:bg-surface selection:text-white">
+<body class="antialiased selection:bg-surface selection:text-primary">
 
-    <nav class="fixed w-full z-50 top-0 border-b border-borderSubtle bg-background/80 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
-                <div class="flex-shrink-0 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center border border-borderSubtle">
-                        <i class="ph ph-hard-drives text-xl text-white"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="font-bold text-lg leading-none tracking-tight">HonestRecovery</span>
-                        <span class="text-[10px] text-textMain/50 font-medium tracking-widest uppercase mt-1">By ReviveMedia</span>
-                    </div>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 border-b border-surface/50 bg-base/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                    <div class="w-4 h-4 border-2 border-base rounded-sm"></div>
                 </div>
-                
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-sm font-medium text-textMain/70 hover:text-white transition-colors">Features</a>
-                    <a href="#engine" class="text-sm font-medium text-textMain/70 hover:text-white transition-colors">Engine</a>
-                    <a href="#security" class="text-sm font-medium text-textMain/70 hover:text-white transition-colors">Security</a>
-                </div>
-
-                <!-- CTA -->
-                <div class="hidden md:block">
-                    <a href="#pricing" class="inline-flex items-center justify-center bg-surface text-white px-6 py-2.5 rounded-pill-primary text-sm font-semibold hover:bg-[#222] transition-colors border border-borderSubtle">
-                        Get Licenses
-                    </a>
-                </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button class="text-textMain hover:text-white">
-                        <i class="ph ph-list text-2xl"></i>
-                    </button>
-                </div>
+                <span class="text-xl font-bold tracking-tight text-primary">HonestRecovery</span>
             </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-textdim">
+                <a href="#architecture" class="hover:text-primary transition-colors">Architecture</a>
+                <a href="#interface" class="hover:text-primary transition-colors">Interface</a>
+                <a href="#metrics" class="hover:text-primary transition-colors">Scale</a>
+            </div>
+            <a href="#pricing" class="bg-surface text-textdim border border-borderline px-6 py-2.5 rounded-[32px] text-sm font-bold hover:bg-white hover:text-black transition-colors">
+                Get License
+            </a>
         </div>
     </nav>
 
-    <main>
-        <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-            <!-- Background Elements -->
-            <div class="absolute inset-0 bg-grid z-0 opacity-50"></div>
-            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/5 blur-[120px] rounded-full z-0 pointer-events-none"></div>
-
-            <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                    
-                    <!-- Hero Copy -->
-                    <div class="flex flex-col gap-8">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-borderSubtle bg-surface w-fit">
-                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                            <span class="text-xs font-semibold tracking-wide uppercase text-textMain/80">Apple Silicon Exclusive</span>
-                        </div>
-                        
-                        <h1 class="text-5xl lg:text-7xl font-bold tracking-tighter leading-[1.1] text-glow">
-                            Data recovery.<br>
-                            <span class="text-textMain/60">Uncompromised.</span>
-                        </h1>
-                        
-                        <p class="text-lg lg:text-xl text-textMain/70 max-w-lg leading-relaxed font-medium">
-                            A professional-grade data recovery and digital forensics suite built exclusively for macOS. Direct block-level access. Military-grade encryption. Zero cloud telemetry.
-                        </p>
-                        
-                        <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                            <a href="#pricing" class="inline-flex items-center justify-center bg-surface text-white px-8 py-4 rounded-pill-primary text-base font-semibold hover:bg-[#2a2a2a] transition-all border border-borderSubtle shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
-                                Acquire Software
-                                <i class="ph ph-arrow-right ml-2 text-lg"></i>
-                            </a>
-                            <a href="#features" class="inline-flex items-center justify-center bg-transparent text-white px-8 py-4 rounded-pill-secondary text-base font-semibold border border-borderLight hover:bg-white/5 transition-colors">
-                                View Architecture
-                            </a>
-                        </div>
-                        <p class="text-xs text-textMain/40 font-mono mt-2">Requires macOS 13+. M2 optimized.</p>
-                    </div>
-
-                    <div class="relative w-full aspect-[4/3] rounded-2xl bg-[#050505] border border-borderSubtle overflow-hidden flex flex-col shadow-2xl">
-                        <!-- Terminal Header -->
-                        <div class="h-10 border-b border-borderSubtle bg-[#0f0f0f] flex items-center px-4 gap-2">
-                            <div class="flex gap-1.5">
-                                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
-                                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
-                                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
-                            </div>
-                            <div class="mx-auto text-xs font-mono text-textMain/40 flex items-center gap-2">
-                                <i class="ph ph-lock-key"></i> root@macos-forensics ~ bash
-                            </div>
-                        </div>
-                        <!-- Terminal Body -->
-                        <div class="p-6 font-mono text-sm leading-relaxed text-textMain/70 flex-1 overflow-hidden relative">
-                            <div class="text-textMain/40 mb-4">Last login: Wed Aug 26 10:54:15 on ttys001</div>
-                            <div class="mb-1"><span class="text-accent">root#</span> honest-recovery --scan /dev/rdisk3</div>
-                            <div class="text-textMain/50 mb-4">Initiating low-level block scan on physical device...</div>
-                            
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Scanning Sector 0x00A4...</span>
-                                <span>[24%]</span>
-                            </div>
-                            <div class="w-full h-1 bg-[#222] rounded-full mb-4 overflow-hidden">
-                                <div class="h-full bg-white w-1/4"></div>
-                            </div>
-
-                            <div class="space-y-1">
-                                <div><span class="text-green-400">FOUND</span> Signature: 50 4B 03 04 (ZIP Archive) at block 45921</div>
-                                <div><span class="text-green-400">FOUND</span> Signature: FF D8 FF E0 (JPEG Image) at block 89104</div>
-                                <div><span class="text-yellow-400">BYPASS</span> Filesystem allocation table...</div>
-                                <div><span class="text-green-400">FOUND</span> SQLite DB (Messages.db) raw fragment...</div>
-                            </div>
-                            
-                            <div class="mt-4"><span class="text-accent">root#</span> <span class="w-2 h-4 bg-white inline-block align-middle cursor-blink"></span></div>
-                            
-                            <!-- Overlay gradient to fade out bottom text -->
-                            <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[#050505] to-transparent"></div>
-                        </div>
-                    </div>
-                    
-                </div>
+    <!-- Hero Section -->
+    <section class="relative pt-40 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center">
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-surface/50 mb-8">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-bold uppercase tracking-wider">Built exclusively for Apple Silicon</span>
             </div>
-        </section>
-
-        <section id="scale" class="relative pt-24 pb-0 bg-background overflow-hidden border-t border-borderSubtle min-h-[500px] lg:min-h-[700px] flex flex-col justify-start">
-            <!-- Grid background -->
-            <div class="absolute inset-0 bg-grid z-0 opacity-30"></div>
-            
-            <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full">
-                <!-- Metrics aligned with the screenshot aesthetic -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-12 mb-12 border-b border-borderSubtle">
-                    <div>
-                        <div class="text-3xl lg:text-4xl font-bold mb-2 text-white">0%</div>
-                        <div class="text-textMain/60 text-sm">Telemetry or cloud dependency</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl lg:text-4xl font-bold mb-2 text-white">AES-256</div>
-                        <div class="text-textMain/60 text-sm">Military-grade vault encryption</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl lg:text-4xl font-bold mb-2 text-white">Bare-metal</div>
-                        <div class="text-textMain/60 text-sm">Direct block-level I/O access</div>
-                    </div>
-                </div>
+            <h1 class="text-5xl md:text-[80px] leading-[1.1] font-extrabold text-primary mb-8 tracking-tight">
+                No cloud.<br>No subscriptions.<br>No compromises.
+            </h1>
+            <p class="text-lg md:text-xl text-textdim max-w-2xl mx-auto mb-12 leading-relaxed">
+                Professional-grade data recovery and digital forensics suite built exclusively for macOS. Designed for investigators, IT professionals, and power users who need direct, uncompromising access to their data.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#pricing" class="glow-button w-full sm:w-auto bg-surface text-primary px-8 py-4 rounded-[22px] text-lg font-bold border border-transparent hover:border-borderline/20">
+                    Purchase License
+                </a>
+                <a href="#architecture" class="w-full sm:w-auto bg-transparent border border-borderline text-primary px-8 py-4 rounded-[32px] text-lg font-bold hover:bg-surface transition-colors">
+                    View Architecture
+                </a>
             </div>
-
-            <!-- 3D Sphere Canvas Container -->
-            <!-- Translated down so only the top hemisphere is visible, creating a dome effect -->
-            <div id="sphere-container" class="absolute bottom-0 left-0 w-full h-[500px] z-0 translate-y-1/3 flex justify-center items-end"></div>
-            
-            <!-- Fade overlay at the bottom so it blends seamlessly into the next dark section -->
-            <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#050505] to-transparent z-10 pointer-events-none"></div>
-        </section>
-
-        <section id="pricing" class="py-24 border-t border-borderSubtle bg-[#050505]">
-            <div class="max-w-7xl mx-auto px-6 lg:px-8">
-                <div class="bg-surface border border-borderSubtle rounded-[32px] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 relative overflow-hidden">
-                    
-                    <!-- decorative background glow -->
-                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/5 blur-[80px] rounded-full pointer-events-none"></div>
-
-                    <div class="flex-1 z-10">
-                        <h2 class="text-3xl lg:text-5xl font-bold mb-4">Honest Recovery.</h2>
-                        <p class="text-xl text-textMain/60 mb-6">No cloud. No subscriptions. No compromises.</p>
-                        <ul class="space-y-3 text-sm text-textMain/80 font-medium mb-8">
-                            <li class="flex items-center gap-2"><i class="ph ph-check text-white"></i> Perpetual macOS License</li>
-                            <li class="flex items-center gap-2"><i class="ph ph-check text-white"></i> Includes Carver, Cloner, Encrypter & iOS Extractor</li>
-                            <li class="flex items-center gap-2"><i class="ph ph-check text-white"></i> 1 Year of Binary Updates</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-background border border-borderSubtle rounded-3xl p-8 min-w-[320px] text-center z-10">
-                        <div class="text-sm font-bold text-textMain/50 uppercase tracking-widest mb-4">Single Professional License</div>
-                        <div class="text-5xl font-bold mb-2">$499</div>
-                        <div class="text-xs text-textMain/40 mb-8 font-mono">One-time purchase. USD.</div>
-                        <button class="w-full inline-flex items-center justify-center bg-white text-black px-6 py-4 rounded-pill-primary text-base font-bold hover:bg-gray-200 transition-colors">
-                            Purchase Key
-                        </button>
-                        <div class="mt-4 text-[10px] text-textMain/40 flex items-center justify-center gap-1">
-                            <i class="ph ph-lock-key"></i> Secure checkout provided by Stripe
-                        </div>
-                    </div>
-
-                </div>
+        </div>
+        
+        <!-- Background Terminal Mockup -->
+        <div class="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[120%] max-w-[1400px] h-96 bg-surface border border-borderline/10 rounded-t-[40px] opacity-20 -z-10">
+            <div class="p-6 border-b border-borderline/10 flex gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
-        </section>
-    </main>
+            <div class="p-8 font-mono text-sm text-green-400 opacity-50">
+                > Initializing block-level scan on /dev/rdisk...<br>
+                > Bypassing APFS file system... OK<br>
+                > Hex signature parsing engaged.<br>
+                > Privileged helper running as root.<br>
+                > Awaiting operator command...
+            </div>
+        </div>
+    </section>
 
-    <footer class="bg-background py-12 border-t border-borderSubtle">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-3">
-                <div class="w-6 h-6 rounded bg-surface flex items-center justify-center border border-borderSubtle">
-                    <i class="ph ph-hard-drives text-xs text-white"></i>
-                </div>
-                <span class="font-bold text-sm tracking-tight text-white">HonestRecovery</span>
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-24 px-6 bg-base relative z-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Core Subsystems.</h2>
+                <p class="text-textdim text-lg">Direct, low-level access without the safety rails.</p>
             </div>
             
-            <div class="text-xs text-textMain/40 flex gap-6">
-                <a href="#" class="hover:text-white transition-colors">EULA</a>
-                <a href="#" class="hover:text-white transition-colors">Documentation</a>
-                <a href="#" class="hover:text-white transition-colors">Support</a>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Feature 1 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">Deep File Carver</h3>
+                    <p class="text-textdim text-sm leading-relaxed">Recovers deleted files directly from raw disk devices using low-level hex signature scanning. Operates at the block level via /dev/rdisk access, bypassing the filesystem entirely to find files the OS considers gone.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">Data Cloner</h3>
+                    <p class="text-textdim text-sm leading-relaxed">Creates block-level volume replicas using Apple's asr restore engine. Includes a hardware-level boot-volume safety gate that programmatically refuses to erase the running system.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">AES-256 Encrypted DMG</h3>
+                    <p class="text-textdim text-sm leading-relaxed">Packages any folder into a password-protected, compressed Apple Disk Image using 256-bit AES encryption. Password handling never appears in the system process list.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">iOS Forensics Engine</h3>
+                    <p class="text-textdim text-sm leading-relaxed">Parses unencrypted local backups to extract Contacts, Messages, Call History, and the full Camera Roll. Includes a live USB extraction mode—no iTunes required.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">Offline License System</h3>
+                    <p class="text-textdim text-sm leading-relaxed">No subscription. No server. No account. License validation happens entirely on-device using cryptographic key verification. It works permanently offline.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-surface p-8 rounded-[24px] border border-borderline/5">
+                    <div class="w-12 h-12 bg-base rounded-xl flex items-center justify-center mb-6 border border-borderline/10">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary mb-3">Built for Professionals</h3>
+                    <p class="text-textdim text-sm leading-relaxed">Non-sandboxed, Developer ID signed, and notarized for macOS 13+. Runs a signed privileged helper for operations that require root access.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- System Interface / Screenshots in Action -->
+    <section id="interface" class="py-24 px-6 bg-base border-t border-surface overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-24 text-center relative z-20">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">See It In Action.</h2>
+                <p class="text-textdim text-lg">Clean, native macOS integration.</p>
             </div>
 
-            <div class="text-xs text-textMain/40">
-                &copy; 2026 ReviveMedia & Recovery. All rights reserved. macOS is a trademark of Apple Inc.
+            <!-- UI Display 1: Overview / Privileged Subsystem -->
+            <div class="flex flex-col lg:flex-row items-center gap-12 mb-32">
+                <div class="w-full lg:w-1/3 space-y-4 relative z-20">
+                    <div class="inline-block px-3 py-1 rounded bg-surface border border-surface/50 text-xs font-bold uppercase tracking-widest text-primary mb-2">Module 01</div>
+                    <h3 class="text-3xl font-bold text-primary">Privileged Subsystem</h3>
+                    <p class="text-textdim text-base leading-relaxed">HonestRecovery runs a signed root daemon in the background to handle destructive operations and low-level block I/O, meaning the main UI operates safely without sandbox violations.</p>
+                </div>
+                <div class="w-full lg:w-2/3 relative">
+                    <img src="device_frame_20260825013139_2.png" alt="Privileged Subsystem Dashboard" class="software-preview w-full h-auto object-contain drop-shadow-2xl">
+                </div>
+            </div>
+
+            <!-- UI Display 2: Deep File Carver -->
+            <div class="flex flex-col lg:flex-row-reverse items-center gap-12 mb-32">
+                <div class="w-full lg:w-1/3 space-y-4 lg:pl-12 relative z-20">
+                    <div class="inline-block px-3 py-1 rounded bg-surface border border-surface/50 text-xs font-bold uppercase tracking-widest text-primary mb-2">Module 02</div>
+                    <h3 class="text-3xl font-bold text-primary">Deep File Carver</h3>
+                    <p class="text-textdim text-base leading-relaxed">Select specific hex signatures and bypass the filesystem entirely. The progress log feeds directly from the root privileged helper, returning files you thought were gone forever.</p>
+                </div>
+                <div class="w-full lg:w-2/3 relative">
+                    <img src="device_frame_20260825013109_2.png" alt="Deep File Carver Interface" class="software-preview w-full h-auto object-contain drop-shadow-2xl">
+                </div>
+            </div>
+
+            <!-- UI Display 3: Data Cloner -->
+            <div class="flex flex-col lg:flex-row items-center gap-12 mb-32">
+                <div class="w-full lg:w-1/3 space-y-4 relative z-20">
+                    <div class="inline-block px-3 py-1 rounded bg-surface border border-surface/50 text-xs font-bold uppercase tracking-widest text-primary mb-2">Module 03</div>
+                    <h3 class="text-3xl font-bold text-primary">Data Cloner Engine</h3>
+                    <p class="text-textdim text-base leading-relaxed">Perform highly-destructive block-level replication safely. The UI forces a hardware-level safety gate check before permanently wiping the target disk, completely preventing system self-erasure.</p>
+                </div>
+                <div class="w-full lg:w-2/3 relative">
+                    <img src="device_frame_20260825013355_2.png" alt="Data Cloner Safety Interface" class="software-preview w-full h-auto object-contain drop-shadow-2xl">
+                </div>
+            </div>
+
+            <!-- UI Display 4: Live iOS Extraction -->
+            <div class="flex flex-col lg:flex-row-reverse items-center gap-12">
+                <div class="w-full lg:w-1/3 space-y-4 lg:pl-12 relative z-20">
+                    <div class="inline-block px-3 py-1 rounded bg-surface border border-surface/50 text-xs font-bold uppercase tracking-widest text-primary mb-2">Module 04</div>
+                    <h3 class="text-3xl font-bold text-primary">Live iOS Extraction</h3>
+                    <p class="text-textdim text-base leading-relaxed">Mount an iPhone via USB and trigger a fresh extraction immediately. Parses Contacts, Messages (including attributedBody encoding), and Media directly to your output folder.</p>
+                </div>
+                <div class="w-full lg:w-2/3 relative">
+                    <img src="device_frame_20260825013019_2.png" alt="iOS Extraction Interface" class="software-preview w-full h-auto object-contain drop-shadow-2xl">
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 3D Scale / Metrics Section -->
+    <section id="metrics" class="relative py-32 border-t border-surface bg-base overflow-hidden min-h-[700px] flex items-start">
+        <div class="grid-bg absolute inset-0 z-0 opacity-50"></div>
+        <div id="canvas-container"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 w-full relative z-10">
+            <h2 class="text-4xl md:text-[54px] font-bold text-primary mb-16 max-w-2xl leading-tight">
+                Every byte handled.<br>
+                Nothing missed.
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-surface border-y border-surface bg-base/50 backdrop-blur-sm">
+                
+                <div class="py-10 pr-10">
+                    <div class="text-4xl font-bold text-primary mb-2">Raw</div>
+                    <div class="text-sm text-textdim uppercase tracking-wider font-semibold">Block-Level Access</div>
+                </div>
+                
+                <div class="py-10 md:px-10">
+                    <div class="text-4xl font-bold text-primary mb-2">AES-256</div>
+                    <div class="text-sm text-textdim uppercase tracking-wider font-semibold">Military-Grade Archiving</div>
+                </div>
+                
+                <div class="py-10 md:pl-10">
+                    <div class="text-4xl font-bold text-primary mb-2">100%</div>
+                    <div class="text-sm text-textdim uppercase tracking-wider font-semibold">Offline Verification</div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Bottom gradient fade so the sphere blends nicely into the next section -->
+        <div class="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-base to-transparent z-10 pointer-events-none"></div>
+    </section>
+
+    <!-- Pricing / CTA Section -->
+    <section id="pricing" class="py-32 px-6 bg-base border-t border-surface relative z-20">
+        <div class="max-w-xl mx-auto text-center">
+            <h2 class="text-4xl font-bold mb-6">Own your operations.</h2>
+            <p class="text-textdim mb-12">One-time payment. Lifetime access. No telemetry, no check-ins, no forced updates.</p>
+            
+            <div class="bg-surface p-12 rounded-[32px] border border-borderline/10 text-left">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h3 class="text-2xl font-bold text-primary">Pro License</h3>
+                        <p class="text-sm text-textdim mt-1">Permanent Device Key</p>
+                    </div>
+                    <div class="text-4xl font-bold text-primary">$59</div>
+                </div>
+                
+                <ul class="space-y-4 mb-10 text-sm font-semibold text-textdim">
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Full Data Carver & Cloner
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        iOS USB Extraction Pipeline
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        AES-256 Encrypted Archiving
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Cryptographic Offline Licensing
+                    </li>
+                </ul>
+                
+                <!-- Direct Gumroad Checkout Link -->
+                <a href="https://fuerstie.gumroad.com/l/txfiau?wanted=true" target="_blank" rel="noopener noreferrer" class="glow-button block w-full bg-primary text-base py-4 rounded-[22px] text-center font-bold mb-4 text-black">
+                    Purchase Key
+                </a>
+                <p class="text-xs text-center text-textdim/50 font-mono">Secure checkout powered by Gumroad</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-surface py-12 px-6 bg-base">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-surface border border-borderline/20 flex items-center justify-center">
+                    <div class="w-2 h-2 rounded-sm bg-textdim"></div>
+                </div>
+                <span class="text-sm font-bold text-textdim">ReviveMedia & Recovery</span>
+            </div>
+            <div class="text-sm text-textdim/50">
+                Designed for Apple Silicon M2+. macOS 13 or later required.
             </div>
         </div>
     </footer>
 
+    <!-- Three.js Sphere Script -->
     <script>
-        window.onload = function () {
-            const container = document.getElementById('sphere-container');
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('canvas-container');
             if (!container) return;
 
-            // Setup Scene
             const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / container.clientHeight, 0.1, 1000);
             
-            // Setup Camera
-            const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.z = 28;
-            camera.position.y = 8; // Elevate camera slightly to look down at the dome
-            camera.lookAt(0, 0, 0);
-
-            // Setup Renderer
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+            renderer.setSize(window.innerWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
 
-            // Create Geometry (Sphere made of points)
-            // Increased segments for higher dot density
-            const geometry = new THREE.SphereGeometry(14, 80, 80);
-            
-            // Create Material (Glowing white dots)
-            const material = new THREE.PointsMaterial({
-                color: 0xffffff,
-                size: 0.08,
-                transparent: true,
-                opacity: 0.8,
-                sizeAttenuation: true
-            });
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 7000;
+            const posArray = new Float32Array(particlesCount * 3);
 
-            // Combine into Points Mesh
-            const sphere = new THREE.Points(geometry, material);
-            
-            // Tilt the sphere slightly on the X-axis for a more dynamic structural look
-            sphere.rotation.x = Math.PI / 8;
-            scene.add(sphere);
-
-            // Add subtle fog to fade out the back/bottom points of the sphere smoothly
-            scene.fog = new THREE.FogExp2(0x0a0a0a, 0.025);
-
-            // Animation Loop
-            function animate() {
-                requestAnimationFrame(animate);
+            for(let i = 0; i < particlesCount * 3; i+=3) {
+                const r = 4;
+                const theta = 2 * Math.PI * Math.random();
+                const phi = Math.acos(2 * Math.random() - 1);
                 
-                // Continuous slow rotation on the Y-axis
-                sphere.rotation.y += 0.0015;
-                
-                renderer.render(scene, camera);
+                posArray[i] = r * Math.sin(phi) * Math.cos(theta);
+                posArray[i+1] = r * Math.sin(phi) * Math.sin(theta);
+                posArray[i+2] = r * Math.cos(phi);
             }
 
-            // Start animation
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, material);
+            scene.add(particlesMesh);
+
+            camera.position.y = -2;
+            camera.position.z = 5;
+            camera.lookAt(0, 2, 0);
+
+            particlesMesh.position.y = -1;
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                particlesMesh.rotation.y += 0.001;
+                renderer.render(scene, camera);
+            };
+
             animate();
 
-            // Handle Window Resize
             window.addEventListener('resize', () => {
-                if(container) {
-                    const width = container.clientWidth;
-                    const height = container.clientHeight;
-                    camera.aspect = width / height;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(width, height);
-                }
+                camera.aspect = window.innerWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, container.clientHeight);
             });
-        };
+        });
     </script>
 </body>
 </html>

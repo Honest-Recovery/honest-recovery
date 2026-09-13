@@ -70,6 +70,40 @@
             linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
             background-size: 60px 60px;
         }
+
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -20; /* Behind everything else in the hero section */
+            opacity: 0.4; /* Dim the video so text is readable */
+        }
+
+        .video-container video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+
+        /* Add a subtle gradient overlay to blend the video into the background */
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, rgba(10,10,10,1) 100%);
+            z-index: -15;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 </head>
@@ -96,12 +130,20 @@
 
     <!-- Hero Section -->
     <section class="relative pt-40 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center">
+        <div class="video-container">
+            <video autoplay loop muted playsinline>
+                <source src="https://storage.googleapis.com/a1aa/c4c81898-75f8-4b7b-b0b9-5020bc4924b4.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="video-overlay"></div>
+
         <div class="max-w-4xl mx-auto text-center relative z-10">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-surface/50 mb-8">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-surface/50 mb-8 backdrop-blur-sm">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 <span class="text-xs font-bold uppercase tracking-wider">Built exclusively for Apple Silicon</span>
             </div>
-            <h1 class="text-5xl md:text-[80px] leading-[1.1] font-extrabold text-primary mb-8 tracking-tight">
+            <h1 class="text-5xl md:text-[80px] leading-[1.1] font-extrabold text-primary mb-8 tracking-tight drop-shadow-lg">
                 No cloud.<br>No subscriptions.<br>No compromises.
             </h1>
             <p class="text-lg md:text-xl text-textdim max-w-2xl mx-auto mb-12 leading-relaxed">
